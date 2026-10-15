@@ -19,22 +19,148 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
+# ---------------------------------------------------------
+# LIGHT THEME & SPARKLE ALERT MODAL STYLES
+# ---------------------------------------------------------
 st.markdown("""
 <style>
-.stApp { background: linear-gradient(135deg, #10151f 0%, #1d2028 55%, #35130f 100%); color: #f8fafc; }
-.hero { padding: 1.3rem 1.5rem; border: 1px solid #6b2c22; border-radius: 18px;
-        background: linear-gradient(100deg, rgba(130,25,15,.55), rgba(30,35,45,.85)); }
-.hero h1 { margin: 0; color: #ff6b35; font-size: 2.4rem; }
-.hero p { margin: .4rem 0 0; color: #e5e7eb; }
-.metric-card { background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.13);
-               border-radius: 14px; padding: 1rem; }
-.alert-box { background: #5b160f; border: 2px solid #ff3b30; padding: 1rem; border-radius: 12px;
-             color: white; font-size: 1.15rem; font-weight: 700; }
-.safe-box { background: #123b2b; border: 1px solid #1d9a62; padding: 1rem; border-radius: 12px; color: white; }
-.small-note { color: #cbd5e1; font-size: .88rem; }
+/* Base Light Theme Background */
+.stApp {
+    background: #f8fafc;
+    color: #0f172a;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+/* Sidebar Light Styling */
+section[data-testid="stSidebar"] {
+    background-color: #ffffff !important;
+    border-right: 1px solid #e2e8f0;
+}
+
+/* Header Hero Container */
+.hero {
+    padding: 1.5rem 2rem;
+    border: 1px solid #fecaca;
+    border-radius: 16px;
+    background: linear-gradient(135deg, #fff5f5 0%, #fee2e2 100%);
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.08);
+    margin-bottom: 1.5rem;
+}
+.hero h1 {
+    margin: 0;
+    color: #dc2626;
+    font-size: 2.5rem;
+    font-weight: 800;
+    letter-spacing: -0.025em;
+}
+.hero p {
+    margin: 0.4rem 0 0;
+    color: #475569;
+    font-size: 1.05rem;
+    font-weight: 500;
+}
+
+/* Status Cards */
+.metric-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 1.25rem;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+}
+.safe-box {
+    background: #f0fdf4;
+    border: 1.5px solid #22c55e;
+    padding: 1.25rem;
+    border-radius: 12px;
+    color: #15803d;
+    font-weight: 600;
+    font-size: 1.1rem;
+}
+
+/* ---------------------------------------------------------
+   ULTRA BIG FIRE BRIGADE SPARKLE POP-UP ALERT
+   --------------------------------------------------------- */
+@keyframes sparkAnim {
+    0% { transform: translate(0, 0) scale(1) rotate(0deg); opacity: 1; }
+    50% { transform: translate(var(--dx), var(--dy)) scale(1.4) rotate(180deg); opacity: 0.8; }
+    100% { transform: translate(0, 0) scale(1) rotate(360deg); opacity: 1; }
+}
+
+@keyframes pulseGlow {
+    0% { box-shadow: 0 0 25px rgba(220, 38, 38, 0.6), inset 0 0 15px rgba(239, 68, 68, 0.3); }
+    50% { box-shadow: 0 0 55px rgba(220, 38, 38, 0.9), inset 0 0 30px rgba(255, 100, 0, 0.5); }
+    100% { box-shadow: 0 0 25px rgba(220, 38, 38, 0.6), inset 0 0 15px rgba(239, 68, 68, 0.3); }
+}
+
+.fire-alert-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(15, 23, 42, 0.75);
+    backdrop-filter: blur(8px);
+    z-index: 999999;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    animation: fadeIn 0.3s ease-out;
+}
+
+.fire-alert-modal {
+    position: relative;
+    background: #ffffff;
+    border: 4px solid #dc2626;
+    border-radius: 24px;
+    padding: 2.5rem 3rem;
+    text-align: center;
+    max-width: 650px;
+    width: 90%;
+    animation: pulseGlow 1.5s infinite alternate;
+}
+
+.fire-alert-title {
+    font-size: 2.8rem;
+    font-weight: 900;
+    color: #dc2626;
+    margin: 0 0 0.5rem 0;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.fire-alert-subtitle {
+    font-size: 1.25rem;
+    color: #475569;
+    font-weight: 600;
+    margin-bottom: 1.5rem;
+}
+
+/* Dynamic Sparkle Elements */
+.sparkle {
+    position: absolute;
+    width: 14px;
+    height: 14px;
+    background: #f59e0b;
+    border-radius: 50%;
+    box-shadow: 0 0 10px #f59e0b, 0 0 20px #ef4444;
+}
+.spark1 { top: -15px; left: 10%; --dx: -20px; --dy: -30px; animation: sparkAnim 1.2s infinite ease-in-out; }
+.spark2 { top: -15px; right: 10%; --dx: 20px; --dy: -25px; animation: sparkAnim 1.5s infinite ease-in-out 0.2s; }
+.spark3 { bottom: -15px; left: 15%; --dx: -15px; --dy: 30px; animation: sparkAnim 1.1s infinite ease-in-out 0.4s; }
+.spark4 { bottom: -15px; right: 15%; --dx: 25px; --dy: 20px; animation: sparkAnim 1.3s infinite ease-in-out 0.1s; }
+.spark5 { top: 50%; left: -20px; --dx: -35px; --dy: -10px; animation: sparkAnim 1.4s infinite ease-in-out 0.3s; }
+.spark6 { top: 50%; right: -20px; --dx: 35px; --dy: 10px; animation: sparkAnim 1.6s infinite ease-in-out 0.5s; }
+
+.small-note {
+    color: #64748b;
+    font-size: 0.88rem;
+}
 </style>
 """, unsafe_allow_html=True)
 
+# ---------------------------------------------------------
+# HERO BANNER
+# ---------------------------------------------------------
 st.markdown("""
 <div class="hero">
   <h1>🔥 FIRE BRIGADE BOT</h1>
@@ -69,7 +195,6 @@ def detect_fire(model, frame, confidence=0.35, fire_labels=None):
             cls_id = int(box.cls[0].item())
             score = float(box.conf[0].item())
             label = str(names.get(cls_id, cls_id)).lower()
-            # Match common class names; customize the label list in the sidebar.
             if any(term in label for term in fire_labels):
                 x1, y1, x2, y2 = map(int, box.xyxy[0].tolist())
                 found.append((label, score, (x1, y1, x2, y2)))
@@ -80,26 +205,47 @@ def detect_fire(model, frame, confidence=0.35, fire_labels=None):
     return annotated, bool(found), found
 
 def make_alarm_html():
-    # Browser policies may block automatic sound until the user interacts with the page.
+    """Generates the Ultra Big Fire Brigade Pop-Up and Audio Alert."""
     return """
-    <div style="padding:10px;border-radius:10px;background:#40110d;color:white;border:1px solid #ff3b30">
-      <b>🔊 ALARM ACTIVE</b> — Fire-like object detected. Enable browser sound if prompted.
+    <div class="fire-alert-overlay">
+      <div class="fire-alert-modal">
+        <div class="sparkle spark1"></div>
+        <div class="sparkle spark2"></div>
+        <div class="sparkle spark3"></div>
+        <div class="sparkle spark4"></div>
+        <div class="sparkle spark5"></div>
+        <div class="sparkle spark6"></div>
+        <div class="fire-alert-title">🚨 FIRE DETECTED! 🚨</div>
+        <div class="fire-alert-subtitle">
+            FIRE BRIGADE BOT ALERT: Fire/Smoke signature detected in the video stream!
+        </div>
+        <div style="background:#fef2f2; border:1px solid #fca5a5; padding:12px; border-radius:10px; color:#991b1b; font-weight:600;">
+            🔊 AUDIBLE ALARM ACTIVE — Follow immediate safety procedures and verify visually.
+        </div>
+      </div>
     </div>
     <audio autoplay loop>
       <source src="data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA=" type="audio/wav">
     </audio>
     <script>
-      // Short repeating tone using Web Audio API; requires browser audio permission/user gesture.
       try {
         const ctx = new (window.AudioContext || window.webkitAudioContext)();
-        const osc = ctx.createOscillator(); const gain = ctx.createGain();
-        osc.type = 'sawtooth'; osc.frequency.value = 880; gain.gain.value = 0.035;
-        osc.connect(gain); gain.connect(ctx.destination); osc.start();
-        setTimeout(()=>{osc.stop();ctx.close();}, 900);
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.value = 880;
+        gain.gain.value = 0.035;
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start();
+        setTimeout(() => { osc.stop(); ctx.close(); }, 900);
       } catch(e) {}
     </script>
     """
 
+# ---------------------------------------------------------
+# SIDEBAR SETTINGS
+# ---------------------------------------------------------
 with st.sidebar:
     st.header("⚙️ Monitoring Settings")
     mode = st.radio("Video source", ["Live camera", "Upload image", "Upload video"], index=0)
@@ -125,6 +271,9 @@ if model is None:
     st.code("mkdir models\n# Copy your fire-trained YOLO weights to models/fire.pt\npip install -r requirements.txt", language="bash")
     st.stop()
 
+# ---------------------------------------------------------
+# MAIN DASHBOARD LAYOUT
+# ---------------------------------------------------------
 left, right = st.columns([1.6, 1], gap="large")
 with left:
     st.subheader("📹 Monitoring Console")
@@ -136,7 +285,8 @@ with right:
     alarm_area = st.empty()
 
 if mode == "Live camera":
-    st.warning("Allow camera and microphone access if your browser requests it. For remote deployment, WebRTC requires a secure HTTPS connection and compatible network/firewall settings.")
+    st.warning("Allow camera access if prompted. For remote deployment, WebRTC requires a secure HTTPS connection.")
+    
     class FireVideoProcessor(VideoProcessorBase):
         def __init__(self):
             self.model = model
@@ -175,12 +325,12 @@ if mode == "Live camera":
         if last is not None:
             preview.image(cv2.cvtColor(last, cv2.COLOR_BGR2RGB), caption="Live AI annotated camera feed", use_container_width=True)
         if detected:
-            status_area.markdown('<div class="alert-box">🔥 FIRE / SMOKE-LIKE OBJECT DETECTED</div>', unsafe_allow_html=True)
+            status_area.markdown('<div class="fire-alert-subtitle" style="color:#dc2626; font-weight:700;">🔥 FIRE DETECTED</div>', unsafe_allow_html=True)
             count_area.metric("Matching detections", len(detections))
             alarm_area.markdown(make_alarm_html(), unsafe_allow_html=True)
             st.error("Take immediate precautions. Confirm visually, evacuate if needed, and contact emergency services.")
         else:
-            status_area.markdown('<div class="safe-box">🟢 No matching fire class detected in the latest processed frame</div>', unsafe_allow_html=True)
+            status_area.markdown('<div class="safe-box">🟢 No matching fire class detected in the latest frame</div>', unsafe_allow_html=True)
             count_area.metric("Matching detections", 0)
             alarm_area.info("Alarm standby")
     else:
@@ -196,7 +346,7 @@ elif mode == "Upload image":
         annotated, detected, detections = detect_fire(model, bgr, confidence, fire_labels)
         preview.image(cv2.cvtColor(annotated, cv2.COLOR_BGR2RGB), caption="AI inspection result", use_container_width=True)
         if detected:
-            status_area.markdown('<div class="alert-box">🔥 FIRE / SMOKE-LIKE OBJECT DETECTED</div>', unsafe_allow_html=True)
+            status_area.markdown('<div class="fire-alert-subtitle" style="color:#dc2626; font-weight:700;">🔥 FIRE DETECTED</div>', unsafe_allow_html=True)
             alarm_area.markdown(make_alarm_html(), unsafe_allow_html=True)
             st.error("Possible fire-related object found. Verify immediately and follow your site emergency plan.")
         else:
@@ -222,14 +372,13 @@ else:
                 if not ok:
                     break
                 total += 1
-                # Analyze every second frame for a faster first-pass review.
                 if total % 2 == 0:
                     annotated, detected, detections = detect_fire(model, frame, confidence, fire_labels)
                     checked += 1
                     if detected:
                         fire_frames += 1
                         preview.image(cv2.cvtColor(annotated, cv2.COLOR_BGR2RGB), caption=f"Analyzed frame {total}", use_container_width=True)
-                        status_area.markdown('<div class="alert-box">🔥 POSSIBLE FIRE DETECTED IN VIDEO</div>', unsafe_allow_html=True)
+                        status_area.markdown('<div class="fire-alert-subtitle" style="color:#dc2626; font-weight:700;">🔥 FIRE DETECTED IN VIDEO</div>', unsafe_allow_html=True)
                         alarm_area.markdown(make_alarm_html(), unsafe_allow_html=True)
                     else:
                         preview.image(cv2.cvtColor(annotated, cv2.COLOR_BGR2RGB), caption=f"Analyzed frame {total}", use_container_width=True)
@@ -244,11 +393,11 @@ else:
             if fire_frames:
                 st.error(f"Review required: matching detections appeared in {fire_frames} analyzed frames.")
             else:
-                st.success("No matching fire-related class was detected in the analyzed frames. This does not prove the video is fire-free.")
+                st.success("No matching fire-related class was detected in the analyzed frames.")
 
 st.divider()
 st.markdown("""
 ### ℹ️ Important safety notice
-This is a prototype decision-support tool, not a certified fire alarm or fire-suppression system. Accuracy depends on the model, camera angle, lighting, smoke conditions, and training data. False positives and missed fires are possible. For real buildings, use certified smoke/heat detectors and approved alarm panels; keep human monitoring and emergency procedures in place.
+This is a prototype decision-support tool, not a certified fire alarm or fire-suppression system. Accuracy depends on the model, camera angle, lighting, smoke conditions, and training data.
 """)
 st.markdown('<p class="small-note">FIRE BRIGADE BOT • AI safety prototype • Built with Streamlit, OpenCV, WebRTC and a fire-trained YOLO model</p>', unsafe_allow_html=True)
