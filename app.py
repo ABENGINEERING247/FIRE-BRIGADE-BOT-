@@ -124,7 +124,7 @@ section[data-testid="stSidebar"] {
     background: #ffffff;
     border: 5px solid #dc2626;
     border-radius: 28px;
-    padding: 3rem 3.5rem;
+    padding: 2.5rem 3rem;
     text-align: center;
     max-width: 700px;
     width: 92%;
@@ -132,18 +132,18 @@ section[data-testid="stSidebar"] {
 }
 
 .fire-alert-title {
-    font-size: 3.2rem;
+    font-size: 2.8rem;
     font-weight: 900;
     color: #dc2626;
-    margin: 0 0 0.75rem 0;
+    margin: 0.5rem 0 0.5rem 0;
     text-shadow: 0 3px 6px rgba(0, 0, 0, 0.12);
 }
 
 .fire-alert-subtitle {
-    font-size: 1.35rem;
+    font-size: 1.2rem;
     color: #334155;
     font-weight: 700;
-    margin-bottom: 1.75rem;
+    margin-bottom: 1.25rem;
 }
 
 /* Dynamic Sparkle / Spark Elements */
@@ -217,8 +217,20 @@ def detect_fire(model, frame, confidence=0.35, fire_labels=None):
     return annotated, bool(found), found
 
 def make_alarm_html():
-    """Generates the Ultra Big Fire Brigade Sparkle Pop-Up and Audio Alert."""
-    return """
+    """Generates the Ultra Big Fire Brigade Sparkle Pop-Up incorporating the attached fire truck image and Audio Alert."""
+    import base64
+    from pathlib import Path
+
+    # Load and encode the attached image in base64 to ensure it renders inside the HTML popup overlay reliably
+    img_path = Path("23851_d969bd.jpg")
+    img_base64 = ""
+    if img_path.exists():
+        img_bytes = img_path.read_bytes()
+        img_base64 = base64.b64encode(img_bytes).decode("utf-8")
+
+    img_tag = f'<img src="data:image/jpeg;base64,{img_base64}" style="width:110px; height:110px; object-fit:contain; border-radius:12px; margin-bottom:5px; box-shadow: 0 4px 10px rgba(0,0,0,0.15);" />' if img_base64 else '🔥'
+
+    return f"""
     <div class="fire-alert-overlay">
       <div class="fire-alert-modal">
         <div class="sparkle spark1"></div>
@@ -227,14 +239,15 @@ def make_alarm_html():
         <div class="sparkle spark4"></div>
         <div class="sparkle spark5"></div>
         <div class="sparkle spark6"></div>
+        {img_tag}
         <div class="fire-alert-title">🚨 FIRE DETECTED! 🚨</div>
         <div class="fire-alert-subtitle">
             FIRE BRIGADE BOT ALERT: Active Fire or Smoke signature detected in the video feed!
         </div>
-        <div style="background:#fef2f2; border:1px solid #fca5a5; padding:14px; border-radius:12px; color:#991b1b; font-weight:700; font-size:1.05rem;">
+        <div style="background:#fef2f2; border:1px solid #fca5a5; padding:12px; border-radius:12px; color:#991b1b; font-weight:700; font-size:1rem;">
             🔊 EMERGENCY ALARM ACTIVE — Take immediate safety precautions and verify visually!
         </div>
-        <div style="margin-top:18px; font-size:0.9rem; color:#475569; font-weight:600;">
+        <div style="margin-top:14px; font-size:0.85rem; color:#475569; font-weight:600;">
             Architecture & Design by Engr Bilal Mehmood
         </div>
       </div>
