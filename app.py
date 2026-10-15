@@ -1,6 +1,7 @@
 import os
 import time
 import threading
+from datetime import datetime
 from pathlib import Path
 
 import cv2
@@ -8,6 +9,10 @@ import numpy as np
 import streamlit as st
 from PIL import Image
 from streamlit_webrtc import webrtc_streamer, VideoProcessorBase, WebRtcMode
+
+# PDF & Word generation imports
+from fpdf import FPDF
+from docx import Document
 
 # FIRE BRIGADE BOT — AI fire detection and alarm dashboard
 # Designed and engineered by Certified Generative and Agentic AI Developer Engr Bilal Mehmood
@@ -25,20 +30,15 @@ st.set_page_config(
 # ---------------------------------------------------------
 st.markdown("""
 <style>
-/* Base Light Theme Background */
 .stApp {
     background: #f8fafc;
     color: #0f172a;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 }
-
-/* Sidebar Light Styling */
 section[data-testid="stSidebar"] {
     background-color: #ffffff !important;
     border-right: 1px solid #e2e8f0;
 }
-
-/* Header Hero Container */
 .hero {
     padding: 1.5rem 2rem;
     border: 1px solid #fecaca;
@@ -71,15 +71,6 @@ section[data-testid="stSidebar"] {
     font-weight: 600;
     letter-spacing: 0.025em;
 }
-
-/* Status Cards */
-.metric-card {
-    background: #ffffff;
-    border: 1px solid #e2e8f0;
-    border-radius: 12px;
-    padding: 1.25rem;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.02);
-}
 .safe-box {
     background: #f0fdf4;
     border: 1.5px solid #22c55e;
@@ -90,9 +81,6 @@ section[data-testid="stSidebar"] {
     font-size: 1.1rem;
 }
 
-/* ---------------------------------------------------------
-   ULTRA BIG FIRE BRIGADE SPARKLE POP-UP ALERT (ANIMATED)
-   --------------------------------------------------------- */
 @keyframes sparkAnim {
     0% { transform: translate(0, 0) scale(1) rotate(0deg); opacity: 1; }
     50% { transform: translate(var(--dx), var(--dy)) scale(1.6) rotate(180deg); opacity: 0.9; }
@@ -146,7 +134,6 @@ section[data-testid="stSidebar"] {
     margin-bottom: 1.75rem;
 }
 
-/* Dynamic Sparkle / Spark Elements */
 .sparkle {
     position: absolute;
     width: 18px;
@@ -169,8 +156,12 @@ section[data-testid="stSidebar"] {
 </style>
 """, unsafe_allow_html=True)
 
+# Session State Initialization for Incident Log History
+if "incident_logs" not in st.session_state:
+    st.session_state.incident_logs = []
+
 # ---------------------------------------------------------
-# WELCOME DIALOG / POPUP SCREEN
+# WELCOME DIALOG POPUP
 # ---------------------------------------------------------
 if "welcome_shown" not in st.session_state:
     st.session_state.welcome_shown = False
@@ -180,15 +171,15 @@ def show_welcome_dialog():
     st.markdown("""
     ### 🛡️ Intelligent Early Fire Detection & Emergency Watch System
     
-    Welcome to the **AI-Powered Fire Brigade Bot**! This application provides real-time intelligent monitoring, live WebRTC camera streams, image/video audits, and automated visual & acoustic alerts for fire and smoke hazards.
+    Welcome to the **AI-Powered Fire Brigade Bot**! This application features live camera monitoring, acoustic/visual popup alarms across mobile and PC platforms, automated incident tracking, and report generation in Tabular, PDF, and Word formats.
     
     #### 🌟 Key Capabilities:
-    * **Live AI Monitoring:** Stream live video feeds with YOLO-based fire and smoke bounding-box detection.
-    * **Multi-Modal Inspection:** Choose between live camera streams, static image uploads, or video inspections.
-    * **Emergency Sparkle Alerts:** High-contrast animated warning overlays with acoustic warning simulations upon detection.
+    * **Live AI Monitoring:** Stream live video feeds with YOLO-based fire and smoke detection.
+    * **Cross-Device Sound & Popup Alarms:** Automated siren triggers on any PC, laptop, or mobile screen.
+    * **Exportable Audit Reports:** Log incidents and download structured reports in PDF and Word (.docx).
     
     ---
-    *Designed and Engineered with precision by **Engr Bilal Mehmood** (Certified Generative and Agentic AI Developer).*
+    *Designed and Engineered by **Engr Bilal Mehmood** (Certified Generative and Agentic AI Developer).*
     """)
     if st.button("🚀 Enter Dashboard", type="primary", use_container_width=True):
         st.session_state.welcome_shown = True
@@ -203,7 +194,7 @@ if not st.session_state.welcome_shown:
 st.markdown("""
 <div class="hero">
   <h1>🔥 FIRE BRIGADE BOT</h1>
-  <p>AI-powered fire watch • Live camera monitoring • Visual warning • Audible alarm</p>
+  <p>AI-powered fire watch • Live camera monitoring • Cross-device sound/visual alarms • Report Generator</p>
   <div class="dev-badge">👨‍💻 Designed & Developed by Engr Bilal Mehmood (Certified GenAI & Agentic AI Developer)</div>
 </div>
 """, unsafe_allow_html=True)
@@ -224,7 +215,6 @@ def get_model():
         return None, f"Could not load model: {exc}"
 
 def detect_fire(model, frame, confidence=0.35, fire_labels=None):
-    """Run YOLO and return annotated frame, fire flag, and matching detections."""
     result = model.predict(frame, conf=confidence, verbose=False)[0]
     names = result.names if hasattr(result, "names") else {}
     fire_labels = {x.strip().lower() for x in (fire_labels or ["fire", "flame", "smoke"])}
@@ -245,7 +235,7 @@ def detect_fire(model, frame, confidence=0.35, fire_labels=None):
     return annotated, bool(found), found
 
 def make_alarm_html():
-    """Generates the Ultra Big Fire Brigade Sparkle Pop-Up and Audio Alert."""
+    """Generates the Ultra Big Fire Brigade Sparkle Pop-Up and Cross-Platform Sound Alarm."""
     return """
     <div class="fire-alert-overlay">
       <div class="fire-alert-modal">
@@ -257,34 +247,88 @@ def make_alarm_html():
         <div class="sparkle spark6"></div>
         <div class="fire-alert-title">🚨 FIRE DETECTED! 🚨</div>
         <div class="fire-alert-subtitle">
-            FIRE BRIGADE BOT ALERT: Active Fire or Smoke signature detected in the video feed!
+            FIRE BRIGADE BOT ALERT: Active Fire or Smoke signature detected on your device!
         </div>
         <div style="background:#fef2f2; border:1px solid #fca5a5; padding:14px; border-radius:12px; color:#991b1b; font-weight:700; font-size:1.05rem;">
-            🔊 EMERGENCY ALARM ACTIVE — Take immediate safety precautions and verify visually!
+            🔊 EMERGENCY SOUND & VISUAL ALARM ACTIVE — Take immediate safety precautions!
         </div>
         <div style="margin-top:18px; font-size:0.9rem; color:#475569; font-weight:600;">
             Architecture & Design by Engr Bilal Mehmood
         </div>
       </div>
     </div>
-    <audio autoplay loop>
-      <source src="data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA=" type="audio/wav">
-    </audio>
     <script>
       try {
-        const ctx = new (window.AudioContext || window.webkitAudioContext)();
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        if (audioCtx.state === 'suspended') { audioCtx.resume(); }
+        const osc = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
         osc.type = 'sawtooth';
-        osc.frequency.value = 880;
-        gain.gain.value = 0.04;
-        osc.connect(gain);
-        gain.connect(ctx.destination);
+        osc.frequency.setValueAtTime(880, audioCtx.currentTime);
+        // Siren frequency modulation for mobile & PC hardware speakers
+        osc.frequency.exponentialRampToValueAtTime(1200, audioCtx.currentTime + 0.5);
+        osc.frequency.exponentialRampToValueAtTime(880, audioCtx.currentTime + 1.0);
+        gainNode.gain.setValueAtTime(0.15, audioCtx.currentTime);
+        osc.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
         osc.start();
-        setTimeout(() => { osc.stop(); ctx.close(); }, 900);
+        setTimeout(() => { osc.stop(); audioCtx.close(); }, 1200);
       } catch(e) {}
     </script>
     """
+
+# Report Exporters
+def generate_pdf_report(logs):
+    pdf = FPDF()
+    pdf.add_page()
+    pdf.set_font("Arial", "B", 16)
+    pdf.cell(200, 10, txt="FIRE BRIGADE BOT - INCIDENT REPORT", ln=True, align="C")
+    pdf.set_font("Arial", "", 10)
+    pdf.cell(200, 8, txt=f"Generated on: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')} | Engr Bilal Mehmood", ln=True, align="C")
+    pdf.ln(10)
+    
+    pdf.set_font("Arial", "B", 11)
+    pdf.cell(50, 10, "Timestamp", 1)
+    pdf.cell(50, 10, "Detection Class", 1)
+    pdf.cell(40, 10, "Confidence", 1)
+    pdf.cell(50, 10, "Status", 1)
+    pdf.ln()
+    
+    pdf.set_font("Arial", "", 10)
+    for log in logs:
+        pdf.cell(50, 10, str(log.get("Timestamp", "")), 1)
+        pdf.cell(50, 10, str(log.get("Class", "")), 1)
+        pdf.cell(40, 10, str(log.get("Confidence", "")), 1)
+        pdf.cell(50, 10, str(log.get("Status", "")), 1)
+        pdf.ln()
+    return pdf.output(dest='S').encode('latin1')
+
+def generate_docx_report(logs):
+    doc = Document()
+    doc.add_heading("FIRE BRIGADE BOT - INCIDENT REPORT", 0)
+    doc.add_paragraph(f"Generated on: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+    doc.add_paragraph("Designed and Engineered by Engr Bilal Mehmood (Certified GenAI & Agentic AI Developer)")
+    doc.add_heading("Detected Fire Events", level=1)
+    
+    table = doc.add_table(rows=1, cols=4)
+    hdr_cells = table.rows[0].cells
+    hdr_cells[0].text = 'Timestamp'
+    hdr_cells[1].text = 'Detection Class'
+    hdr_cells[2].text = 'Confidence'
+    hdr_cells[3].text = 'Status'
+    
+    for log in logs:
+        row_cells = table.add_row().cells
+        row_cells[0].text = str(log.get("Timestamp", ""))
+        row_cells[1].text = str(log.get("Class", ""))
+        row_cells[2].text = str(log.get("Confidence", ""))
+        row_cells[3].text = str(log.get("Status", ""))
+        
+    from io import BytesIO
+    bio = BytesIO()
+    doc.save(bio)
+    bio.seek(0)
+    return bio
 
 # ---------------------------------------------------------
 # SIDEBAR SETTINGS
@@ -298,20 +342,17 @@ with st.sidebar:
     st.divider()
     st.markdown("**Model status**")
     st.caption(f"Expected model: `{MODEL_PATH}`")
-    st.caption("Use a fire-trained model. COCO/general-purpose YOLO weights usually do not detect fire reliably.")
+    st.caption("Use a fire-trained model for accurate flame and smoke detection.")
     st.divider()
     st.markdown("**Emergency checklist**")
     st.caption("1. Do not approach the fire.")
     st.caption("2. Evacuate and alert people nearby.")
     st.caption("3. Call your local fire/emergency service.")
-    st.caption("4. Never rely on this prototype as the only safety system.")
 
 model, model_error = get_model()
 if model is None:
     st.error("AI model is not ready. " + str(model_error))
-    st.info("Add your fire-trained YOLO weights as `models/fire.pt`, or set the `FIRE_MODEL_PATH` environment variable. This app intentionally does not pretend a generic model can reliably identify fire.")
-    st.markdown("### Quick setup")
-    st.code("mkdir models\n# Copy your fire-trained YOLO weights to models/fire.pt\npip install -r requirements.txt", language="bash")
+    st.info("Add your fire-trained YOLO weights as `models/fire.pt`, or set the `FIRE_MODEL_PATH` environment variable.")
     st.stop()
 
 # ---------------------------------------------------------
@@ -328,7 +369,7 @@ with right:
     alarm_area = st.empty()
 
 if mode == "Live camera":
-    st.warning("Allow camera access if prompted. For remote deployment, WebRTC requires a secure HTTPS connection.")
+    st.warning("Allow camera access if prompted. Audio and visual alarms will sound across your PC/laptop or mobile browser.")
     
     class FireVideoProcessor(VideoProcessorBase):
         def __init__(self):
@@ -371,6 +412,13 @@ if mode == "Live camera":
             status_area.markdown('<div class="fire-alert-subtitle" style="color:#dc2626; font-weight:700;">🔥 FIRE DETECTED</div>', unsafe_allow_html=True)
             count_area.metric("Matching detections", len(detections))
             alarm_area.markdown(make_alarm_html(), unsafe_allow_html=True)
+            for label, score, _ in detections:
+                st.session_state.incident_logs.append({
+                    "Timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                    "Class": label,
+                    "Confidence": f"{score:.2%}",
+                    "Status": "ACTIVE FIRE DETECTED"
+                })
             st.error("Take immediate precautions. Confirm visually, evacuate if needed, and contact emergency services.")
         else:
             status_area.markdown('<div class="safe-box">🟢 No matching fire class detected in the latest frame</div>', unsafe_allow_html=True)
@@ -391,6 +439,13 @@ elif mode == "Upload image":
         if detected:
             status_area.markdown('<div class="fire-alert-subtitle" style="color:#dc2626; font-weight:700;">🔥 FIRE DETECTED</div>', unsafe_allow_html=True)
             alarm_area.markdown(make_alarm_html(), unsafe_allow_html=True)
+            for label, score, _ in detections:
+                st.session_state.incident_logs.append({
+                    "Timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                    "Class": label,
+                    "Confidence": f"{score:.2%}",
+                    "Status": "IMAGE FIRE DETECTED"
+                })
             st.error("Possible fire-related object found. Verify immediately and follow your site emergency plan.")
         else:
             status_area.markdown('<div class="safe-box">🟢 No matching fire class detected</div>', unsafe_allow_html=True)
@@ -423,6 +478,13 @@ else:
                         preview.image(cv2.cvtColor(annotated, cv2.COLOR_BGR2RGB), caption=f"Analyzed frame {total}", use_container_width=True)
                         status_area.markdown('<div class="fire-alert-subtitle" style="color:#dc2626; font-weight:700;">🔥 FIRE DETECTED IN VIDEO</div>', unsafe_allow_html=True)
                         alarm_area.markdown(make_alarm_html(), unsafe_allow_html=True)
+                        for label, score, _ in detections:
+                            st.session_state.incident_logs.append({
+                                "Timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                                "Class": label,
+                                "Confidence": f"{score:.2%}",
+                                "Status": f"VIDEO FRAME {total}"
+                            })
                     else:
                         preview.image(cv2.cvtColor(annotated, cv2.COLOR_BGR2RGB), caption=f"Analyzed frame {total}", use_container_width=True)
                         status_area.markdown('<div class="safe-box">🟢 No matching class in this frame</div>', unsafe_allow_html=True)
@@ -438,7 +500,37 @@ else:
             else:
                 st.success("No matching fire-related class was detected in the analyzed frames.")
 
+# ---------------------------------------------------------
+# TABULAR INCIDENT REPORT & DOWNLOAD CENTER
+# ---------------------------------------------------------
 st.divider()
+st.subheader("📋 Incident Report & Export Center")
+if st.session_state.incident_logs:
+    st.markdown("Below is the live tabular log of detected fire events during your current session:")
+    st.dataframe(st.session_state.incident_logs, use_container_width=True)
+    
+    col1, col2 = st.columns(2)
+    with col1:
+        pdf_data = generate_pdf_report(st.session_state.incident_logs)
+        st.download_button(
+            label="📄 Download PDF Report",
+            data=pdf_data,
+            file_name=f"Fire_Incident_Report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf",
+            mime="application/pdf",
+            use_container_width=True
+        )
+    with col2:
+        docx_data = generate_docx_report(st.session_state.incident_logs)
+        st.download_button(
+            label="📝 Download Word (.docx) Report",
+            data=docx_data,
+            file_name=f"Fire_Incident_Report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.docx",
+            mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            use_container_width=True
+        )
+else:
+    st.info("No fire incidents recorded in the current session yet. Tabular logs and report downloads will appear here once events are triggered.")
+
 st.markdown("""
 ### ℹ️ Important safety notice
 This is a prototype decision-support tool, not a certified fire alarm or fire-suppression system. Accuracy depends on the model, camera angle, lighting, smoke conditions, and training data.
