@@ -10,6 +10,7 @@ from PIL import Image
 from streamlit_webrtc import webrtc_streamer, VideoProcessorBase, WebRtcMode
 
 # FIRE BRIGADE BOT — AI fire detection and alarm dashboard
+# Designed and engineered by Certified Generative and Agentic AI Developer Engr Bilal Mehmood
 # Place a fire-trained Ultralytics YOLO model at models/fire.pt, or set FIRE_MODEL_PATH.
 
 st.set_page_config(
@@ -20,7 +21,7 @@ st.set_page_config(
 )
 
 # ---------------------------------------------------------
-# LIGHT THEME & SPARKLE ALERT MODAL STYLES
+# LIGHT THEME & ULTRA BIG SPARKLE ALERT MODAL STYLES
 # ---------------------------------------------------------
 st.markdown("""
 <style>
@@ -59,6 +60,17 @@ section[data-testid="stSidebar"] {
     font-size: 1.05rem;
     font-weight: 500;
 }
+.dev-badge {
+    display: inline-block;
+    margin-top: 0.6rem;
+    background: #dc2626;
+    color: #ffffff;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    letter-spacing: 0.025em;
+}
 
 /* Status Cards */
 .metric-card {
@@ -79,18 +91,18 @@ section[data-testid="stSidebar"] {
 }
 
 /* ---------------------------------------------------------
-   ULTRA BIG FIRE BRIGADE SPARKLE POP-UP ALERT
+   ULTRA BIG FIRE BRIGADE SPARKLE POP-UP ALERT (ANIMATED)
    --------------------------------------------------------- */
 @keyframes sparkAnim {
     0% { transform: translate(0, 0) scale(1) rotate(0deg); opacity: 1; }
-    50% { transform: translate(var(--dx), var(--dy)) scale(1.4) rotate(180deg); opacity: 0.8; }
+    50% { transform: translate(var(--dx), var(--dy)) scale(1.6) rotate(180deg); opacity: 0.9; }
     100% { transform: translate(0, 0) scale(1) rotate(360deg); opacity: 1; }
 }
 
 @keyframes pulseGlow {
-    0% { box-shadow: 0 0 25px rgba(220, 38, 38, 0.6), inset 0 0 15px rgba(239, 68, 68, 0.3); }
-    50% { box-shadow: 0 0 55px rgba(220, 38, 38, 0.9), inset 0 0 30px rgba(255, 100, 0, 0.5); }
-    100% { box-shadow: 0 0 25px rgba(220, 38, 38, 0.6), inset 0 0 15px rgba(239, 68, 68, 0.3); }
+    0% { box-shadow: 0 0 30px rgba(220, 38, 38, 0.6), inset 0 0 20px rgba(239, 68, 68, 0.3); }
+    50% { box-shadow: 0 0 70px rgba(220, 38, 38, 0.95), inset 0 0 40px rgba(255, 100, 0, 0.6); }
+    100% { box-shadow: 0 0 30px rgba(220, 38, 38, 0.6), inset 0 0 20px rgba(239, 68, 68, 0.3); }
 }
 
 .fire-alert-overlay {
@@ -99,57 +111,56 @@ section[data-testid="stSidebar"] {
     left: 0;
     width: 100vw;
     height: 100vh;
-    background: rgba(15, 23, 42, 0.75);
-    backdrop-filter: blur(8px);
+    background: rgba(15, 23, 42, 0.8);
+    backdrop-filter: blur(10px);
     z-index: 999999;
     display: flex;
     justify-content: center;
     align-items: center;
-    animation: fadeIn 0.3s ease-out;
 }
 
 .fire-alert-modal {
     position: relative;
     background: #ffffff;
-    border: 4px solid #dc2626;
-    border-radius: 24px;
-    padding: 2.5rem 3rem;
+    border: 5px solid #dc2626;
+    border-radius: 28px;
+    padding: 3rem 3.5rem;
     text-align: center;
-    max-width: 650px;
-    width: 90%;
-    animation: pulseGlow 1.5s infinite alternate;
+    max-width: 700px;
+    width: 92%;
+    animation: pulseGlow 1.4s infinite alternate;
 }
 
 .fire-alert-title {
-    font-size: 2.8rem;
+    font-size: 3.2rem;
     font-weight: 900;
     color: #dc2626;
-    margin: 0 0 0.5rem 0;
-    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    margin: 0 0 0.75rem 0;
+    text-shadow: 0 3px 6px rgba(0, 0, 0, 0.12);
 }
 
 .fire-alert-subtitle {
-    font-size: 1.25rem;
-    color: #475569;
-    font-weight: 600;
-    margin-bottom: 1.5rem;
+    font-size: 1.35rem;
+    color: #334155;
+    font-weight: 700;
+    margin-bottom: 1.75rem;
 }
 
-/* Dynamic Sparkle Elements */
+/* Dynamic Sparkle / Spark Elements */
 .sparkle {
     position: absolute;
-    width: 14px;
-    height: 14px;
+    width: 18px;
+    height: 18px;
     background: #f59e0b;
     border-radius: 50%;
-    box-shadow: 0 0 10px #f59e0b, 0 0 20px #ef4444;
+    box-shadow: 0 0 12px #f59e0b, 0 0 24px #ef4444, 0 0 36px #ffffff;
 }
-.spark1 { top: -15px; left: 10%; --dx: -20px; --dy: -30px; animation: sparkAnim 1.2s infinite ease-in-out; }
-.spark2 { top: -15px; right: 10%; --dx: 20px; --dy: -25px; animation: sparkAnim 1.5s infinite ease-in-out 0.2s; }
-.spark3 { bottom: -15px; left: 15%; --dx: -15px; --dy: 30px; animation: sparkAnim 1.1s infinite ease-in-out 0.4s; }
-.spark4 { bottom: -15px; right: 15%; --dx: 25px; --dy: 20px; animation: sparkAnim 1.3s infinite ease-in-out 0.1s; }
-.spark5 { top: 50%; left: -20px; --dx: -35px; --dy: -10px; animation: sparkAnim 1.4s infinite ease-in-out 0.3s; }
-.spark6 { top: 50%; right: -20px; --dx: 35px; --dy: 10px; animation: sparkAnim 1.6s infinite ease-in-out 0.5s; }
+.spark1 { top: -20px; left: 8%; --dx: -25px; --dy: -35px; animation: sparkAnim 1.1s infinite ease-in-out; }
+.spark2 { top: -20px; right: 8%; --dx: 25px; --dy: -30px; animation: sparkAnim 1.4s infinite ease-in-out 0.2s; }
+.spark3 { bottom: -20px; left: 12%; --dx: -20px; --dy: 35px; animation: sparkAnim 1.0s infinite ease-in-out 0.4s; }
+.spark4 { bottom: -20px; right: 12%; --dx: 30px; --dy: 25px; animation: sparkAnim 1.3s infinite ease-in-out 0.1s; }
+.spark5 { top: 45%; left: -25px; --dx: -40px; --dy: -15px; animation: sparkAnim 1.5s infinite ease-in-out 0.3s; }
+.spark6 { top: 45%; right: -25px; --dx: 40px; --dy: 15px; animation: sparkAnim 1.2s infinite ease-in-out 0.5s; }
 
 .small-note {
     color: #64748b;
@@ -159,12 +170,13 @@ section[data-testid="stSidebar"] {
 """, unsafe_allow_html=True)
 
 # ---------------------------------------------------------
-# HERO BANNER
+# HERO BANNER WITH DEVELOPER CREDITS
 # ---------------------------------------------------------
 st.markdown("""
 <div class="hero">
   <h1>🔥 FIRE BRIGADE BOT</h1>
   <p>AI-powered fire watch • Live camera monitoring • Visual warning • Audible alarm</p>
+  <div class="dev-badge">👨‍💻 Designed & Developed by Engr Bilal Mehmood (Certified GenAI & Agentic AI Developer)</div>
 </div>
 """, unsafe_allow_html=True)
 
@@ -205,7 +217,7 @@ def detect_fire(model, frame, confidence=0.35, fire_labels=None):
     return annotated, bool(found), found
 
 def make_alarm_html():
-    """Generates the Ultra Big Fire Brigade Pop-Up and Audio Alert."""
+    """Generates the Ultra Big Fire Brigade Sparkle Pop-Up and Audio Alert."""
     return """
     <div class="fire-alert-overlay">
       <div class="fire-alert-modal">
@@ -217,10 +229,13 @@ def make_alarm_html():
         <div class="sparkle spark6"></div>
         <div class="fire-alert-title">🚨 FIRE DETECTED! 🚨</div>
         <div class="fire-alert-subtitle">
-            FIRE BRIGADE BOT ALERT: Fire/Smoke signature detected in the video stream!
+            FIRE BRIGADE BOT ALERT: Active Fire or Smoke signature detected in the video feed!
         </div>
-        <div style="background:#fef2f2; border:1px solid #fca5a5; padding:12px; border-radius:10px; color:#991b1b; font-weight:600;">
-            🔊 AUDIBLE ALARM ACTIVE — Follow immediate safety procedures and verify visually.
+        <div style="background:#fef2f2; border:1px solid #fca5a5; padding:14px; border-radius:12px; color:#991b1b; font-weight:700; font-size:1.05rem;">
+            🔊 EMERGENCY ALARM ACTIVE — Take immediate safety precautions and verify visually!
+        </div>
+        <div style="margin-top:18px; font-size:0.9rem; color:#475569; font-weight:600;">
+            Architecture & Design by Engr Bilal Mehmood
         </div>
       </div>
     </div>
@@ -234,7 +249,7 @@ def make_alarm_html():
         const gain = ctx.createGain();
         osc.type = 'sawtooth';
         osc.frequency.value = 880;
-        gain.gain.value = 0.035;
+        gain.gain.value = 0.04;
         osc.connect(gain);
         gain.connect(ctx.destination);
         osc.start();
@@ -400,4 +415,4 @@ st.markdown("""
 ### ℹ️ Important safety notice
 This is a prototype decision-support tool, not a certified fire alarm or fire-suppression system. Accuracy depends on the model, camera angle, lighting, smoke conditions, and training data.
 """)
-st.markdown('<p class="small-note">FIRE BRIGADE BOT • AI safety prototype • Built with Streamlit, OpenCV, WebRTC and a fire-trained YOLO model</p>', unsafe_allow_html=True)
+st.markdown('<p class="small-note">FIRE BRIGADE BOT • AI safety prototype • Built with Streamlit, OpenCV, WebRTC and a fire-trained YOLO model<br><strong>Engineered and Designed by Engr Bilal Mehmood</strong></p>', unsafe_allow_html=True)
