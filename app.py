@@ -170,6 +170,34 @@ section[data-testid="stSidebar"] {
 """, unsafe_allow_html=True)
 
 # ---------------------------------------------------------
+# WELCOME DIALOG / POPUP SCREEN
+# ---------------------------------------------------------
+if "welcome_shown" not in st.session_state:
+    st.session_state.welcome_shown = False
+
+@st.dialog("🔥 Welcome to AI-Powered Fire Brigade Bot", width="large")
+def show_welcome_dialog():
+    st.markdown("""
+    ### 🛡️ Intelligent Early Fire Detection & Emergency Watch System
+    
+    Welcome to the **AI-Powered Fire Brigade Bot**! This application provides real-time intelligent monitoring, live WebRTC camera streams, image/video audits, and automated visual & acoustic alerts for fire and smoke hazards.
+    
+    #### 🌟 Key Capabilities:
+    * **Live AI Monitoring:** Stream live video feeds with YOLO-based fire and smoke bounding-box detection.
+    * **Multi-Modal Inspection:** Choose between live camera streams, static image uploads, or video inspections.
+    * **Emergency Sparkle Alerts:** High-contrast animated warning overlays with acoustic warning simulations upon detection.
+    
+    ---
+    *Designed and Engineered with precision by **Engr Bilal Mehmood** (Certified Generative and Agentic AI Developer).*
+    """)
+    if st.button("🚀 Enter Dashboard", type="primary", use_container_width=True):
+        st.session_state.welcome_shown = True
+        st.rerun()
+
+if not st.session_state.welcome_shown:
+    show_welcome_dialog()
+
+# ---------------------------------------------------------
 # HERO BANNER WITH DEVELOPER CREDITS
 # ---------------------------------------------------------
 st.markdown("""
